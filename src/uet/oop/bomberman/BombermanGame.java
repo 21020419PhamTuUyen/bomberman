@@ -2,6 +2,7 @@ package uet.oop.bomberman;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.awt.Rectangle;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
@@ -27,9 +28,13 @@ public class BombermanGame extends Application {
     private List<Entity> entities = new ArrayList<>();
     private List<Entity> stillObjects = new ArrayList<>();
 
+    Entity bomberman = new Bomber(Sprite.x_bomber, Sprite.y_bomber, Sprite.player_right.getFxImage());
+    Entity nextBomber = new Bomber(Sprite.x_bomber, Sprite.y_bomber, Sprite.player_right.getFxImage());
     protected static List<String> map = new Map(1).getMap();
     public static final int WIDTH = map.get(0).length();
     public static final int HEIGHT = map.size();
+
+    private static int speed = 3; // toc do cua nhan vat
 
     @Override
     public void start(Stage stage) {
@@ -58,71 +63,66 @@ public class BombermanGame extends Application {
         timer.start();
 
         createMap();
-
-        Entity bomberman = new Bomber(Sprite.x_bomber, Sprite.y_bomber, Sprite.player_right.getFxImage());
-        entities.add(bomberman);
-        // entities.remove(entities.size() - 1);
-        // Sprite.y_bomber++;
-        // bomberman = new Bomber(Sprite.x_bomber, Sprite.y_bomber,
-        // Sprite.player_right.getFxImage());
-        // entities.add(bomberman);
-        // Entity bomberman1 = new Bomber(Sprite.x_bomber, Sprite.y_bomber+1,
-        // Sprite.player_right.getFxImage());
-        // entities.add(bomberman1);
         scene.addEventHandler(KeyEvent.KEY_PRESSED, (key) -> {
-            if (key.getCode() == KeyCode.DOWN && Sprite.y_bomber <= HEIGHT - 3) {
+            // System.out.println(bomberman.getX() + " " + bomberman.getY());
 
-                entities.remove(entities.size() - 1);
-                Sprite.y_bomber++;
-                Entity newbomberman;
-                if (Sprite.y_bomber % 3 == 1)
-                    newbomberman = new Bomber(Sprite.x_bomber, Sprite.y_bomber, Sprite.player_down.getFxImage());
-                else if (Sprite.y_bomber % 3 == 2)
-                    newbomberman = new Bomber(Sprite.x_bomber, Sprite.y_bomber, Sprite.player_down_1.getFxImage());
+            if (key.getCode() == KeyCode.DOWN && nextBomber.getY() <= (HEIGHT - 2) * Sprite.SCALED_SIZE) {
+                bomberman.setImg(Sprite.player_down.getFxImage());
+                if (bomberman.getY() < (HEIGHT - 2) * Sprite.SCALED_SIZE)
+                    nextBomber.setY(bomberman.getY() + Sprite.SCALED_SIZE / speed);
+                if (checkCollision(nextBomber, stillObjects))
+                    bomberman.setY(nextBomber.getY());
                 else
-                    newbomberman = new Bomber(Sprite.x_bomber, Sprite.y_bomber, Sprite.player_down_2.getFxImage());
-                entities.add(newbomberman);
+                    nextBomber.setY(bomberman.getY());
+                bomberman.setInput("DOWN");
             }
-            if (key.getCode() == KeyCode.UP && Sprite.y_bomber >= 2) {
+            if (key.getCode() == KeyCode.UP && nextBomber.getY() >= 1 * Sprite.SCALED_SIZE) {
 
-                entities.remove(entities.size() - 1);
-                Sprite.y_bomber--;
-                Entity newbomberman;
-                if (Sprite.y_bomber % 3 == 1)
-                    newbomberman = new Bomber(Sprite.x_bomber, Sprite.y_bomber, Sprite.player_up.getFxImage());
-                else if (Sprite.y_bomber % 3 == 2)
-                    newbomberman = new Bomber(Sprite.x_bomber, Sprite.y_bomber, Sprite.player_up_1.getFxImage());
+                bomberman.setImg(Sprite.player_up.getFxImage());
+                if (bomberman.getY() > 1 * Sprite.SCALED_SIZE)
+                    nextBomber.setY(bomberman.getY() - Sprite.SCALED_SIZE / speed);
+                if (checkCollision(nextBomber, stillObjects))
+                    bomberman.setY(nextBomber.getY());
                 else
-                    newbomberman = new Bomber(Sprite.x_bomber, Sprite.y_bomber, Sprite.player_up_2.getFxImage());
-                entities.add(newbomberman);
+                    nextBomber.setY(bomberman.getY());
+                bomberman.setInput("UP");
             }
-            if (key.getCode() == KeyCode.RIGHT && Sprite.x_bomber <= WIDTH - 3) {
-                entities.remove(entities.size() - 1);
-                Sprite.x_bomber++;
-                Entity newbomberman;
-                if (Sprite.x_bomber % 3 == 1)
-                    newbomberman = new Bomber(Sprite.x_bomber, Sprite.y_bomber, Sprite.player_right.getFxImage());
-                else if (Sprite.x_bomber % 3 == 2)
-                    newbomberman = new Bomber(Sprite.x_bomber, Sprite.y_bomber, Sprite.player_right_1.getFxImage());
+            if (key.getCode() == KeyCode.RIGHT & nextBomber.getX() <= (WIDTH - 2) * Sprite.SCALED_SIZE) {
+                bomberman.setImg(Sprite.player_right.getFxImage());
+                if (bomberman.getX() < (WIDTH - 2) * Sprite.SCALED_SIZE)
+                    nextBomber.setX(bomberman.getX() + Sprite.SCALED_SIZE / speed);
+                if (checkCollision(nextBomber, stillObjects))
+                    bomberman.setX(nextBomber.getX());
                 else
-                    newbomberman = new Bomber(Sprite.x_bomber, Sprite.y_bomber, Sprite.player_right_2.getFxImage());
-                entities.add(newbomberman);
+                    nextBomber.setX(bomberman.getX());
+                bomberman.setInput("RIGHT");
             }
-            if (key.getCode() == KeyCode.LEFT && Sprite.x_bomber >= 2) {
-
-                entities.remove(entities.size() - 1);
-                Sprite.x_bomber--;
-                Entity newbomberman;
-                if (Sprite.x_bomber % 3 == 1)
-                    newbomberman = new Bomber(Sprite.x_bomber, Sprite.y_bomber, Sprite.player_left.getFxImage());
-                else if (Sprite.x_bomber % 3 == 2)
-                    newbomberman = new Bomber(Sprite.x_bomber, Sprite.y_bomber, Sprite.player_left_1.getFxImage());
+            if (key.getCode() == KeyCode.LEFT && nextBomber.getX() >= 1 * Sprite.SCALED_SIZE) {
+                bomberman.setImg(Sprite.player_left.getFxImage());
+                if (bomberman.getX() > 1 * Sprite.SCALED_SIZE)
+                    nextBomber.setX(bomberman.getX() - Sprite.SCALED_SIZE / speed);
+                if (checkCollision(nextBomber, stillObjects))
+                    bomberman.setX(nextBomber.getX());
                 else
-                    newbomberman = new Bomber(Sprite.x_bomber, Sprite.y_bomber, Sprite.player_left_2.getFxImage());
-                entities.add(newbomberman);
+                    nextBomber.setX(bomberman.getX());
+                bomberman.setInput("LEFT");
             }
         });
 
+    }
+
+    public boolean checkCollision(Entity bomber, List<Entity> stillObjects) {
+        Rectangle Obj1 = new Rectangle(bomber.getX(), bomber.getY(), Sprite.SCALED_SIZE - 1, Sprite.SCALED_SIZE - 1);
+        for (int i = 0; i < stillObjects.size(); i++) {
+            Rectangle Obj2 = new Rectangle(stillObjects.get(i).getX(), stillObjects.get(i).getY(),
+                    Sprite.SCALED_SIZE - 1,
+                    Sprite.SCALED_SIZE - 1);
+            if (Obj1.intersects(Obj2) && !(stillObjects.get(i) instanceof Grass)) {
+                System.out.println("va cham");
+                return false;
+            }
+        }
+        return true;
     }
 
     public void createMap() {
@@ -131,23 +131,28 @@ public class BombermanGame extends Application {
                 Entity object;
                 if (map.get(i).charAt(j) == '#') {
                     object = new Wall(j, i, Sprite.wall.getFxImage());
+
                 } else if (map.get(i).charAt(j) == '*') {
                     object = new Brick(j, i, Sprite.brick.getFxImage());
                 } else {
                     object = new Grass(j, i, Sprite.grass.getFxImage());
                 }
                 stillObjects.add(object);
+
             }
         }
     }
 
     public void update() {
         entities.forEach(Entity::update);
+        bomberman.update();
+
     }
 
     public void render() {
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
         stillObjects.forEach(g -> g.render(gc));
         entities.forEach(g -> g.render(gc));
+        bomberman.render(gc);
     }
 }
